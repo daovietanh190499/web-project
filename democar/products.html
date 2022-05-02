@@ -1,0 +1,139 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="keywords" content="Kinh doanh máy móc, thiết bị, vật tư, phù tùng ngành mỏ, kim khí, điện máy, thiết bị điện, Xây dựng dân dụng, công nghiệp, giao thông thuỷ lợi, San lấp mặt bằng, Kinh doanh bất động sản, Kinh doanh kho bãi." />
+    <meta name="description" content="Sản xuất, lắp ráp, kinh doanh, cho thuê các loại máy móc thiết bị xây dựng và máy công trình phục vụ ngành công nghiệp và xây dựng, Kinh doanh máy móc, thiết bị, vật tư, phù tùng ngành mỏ, kim khí, điện máy, thiết bị điện. Xây dựng dân dụng, công nghiệp, giao thông thuỷ lợi. San lấp mặt bằng.  Kinh doanh bất động sản.  Kinh doanh kho bãi.  Vận tải hàng hoá đường bộ. Lữ hành nội địa, quốc tế và các dịch vụ phục vụ khách du lịch. Kinh doanh ô tô, xe máy. Cho thuê xe tự lái từ 5 đến 47 chỗ ngồi. Xuất nhập khẩu các mặt hàng công ty kinh doanh" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!-- All css files are included here. -->
+    <!-- Bootstrap fremwork main css -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- User style -->
+    <link rel="stylesheet" href="css/custom.css">
+    <!-- Modernizr JS -->
+    <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+</head>
+
+<body>
+    <div id="root">
+    {{setPageId(1)}}
+    <title>Các sản phẩm</title>
+    <!--[if lt IE 8]>
+        <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->  
+
+    <!-- Body main wrapper start -->
+    <div class="wrapper">
+        <!-- Start Header Style -->
+        <div id="header">
+            <!-- Start Header Top -->
+            <div class="bg__cat--1">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-6 col-sm-6 col-xs-12">
+                            <ul class="heaher__top__left hidden-xs hidden-sm">
+                                <li><i class="fa fa-clock-o"></i>{{ilang('time')}}</li>
+                                <li><a v-bind:href="'tel:' + ilang('phone')"><i class="fa fa-phone"></i>{{ilang('phone')}} &nbsp - &nbsp {{ilang('hotline')}}</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-6 col-xs-12">
+                            <ul class="heaher__top__right hidden-xs hidden-sm">
+                                <li><img src="images/others/vietnam.svg" v-on:click="changeLang('vi')"></li>
+                                <li><img src="images/others/united-kingdom.svg" v-on:click="changeLang('en')"></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Header Top -->
+           <!-- Start Mainmenu Area -->
+           <div class="sticky__header" v-bind:class="{'scroll-header': scrollMenu}">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-2 col-sm-6 col-xs-7">
+                        <div class="logo">
+                            <a href="index.html">
+                                <img v-bind:src="ilang('logoLink')" alt="logo image">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-10 col-sm-6 col-xs-5">
+                        <nav class="hidden-xs hidden-sm">
+                            <nested-menu v-bind:list="menu" v-bind:main="true" v-bind:bread="getQuery().bread"></nested-menu>
+                        </nav>
+                        <div class="mobile-menu visible-xs visible-sm">
+                            <nav id="mobile_dropdown">
+                                <nested-menu v-bind:list="menu" v-bind:mobile="true"></nested-menu>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-menu-area"></div>
+            </div>
+        </div>
+        <!-- End Mainmenu Area -->
+        </div>
+        <!-- End Header Style -->
+        <!-- Start Bradcaump area -->
+        <breadcrumb v-bind:bread="getQuery().bread" v-bind:menu="menu"></breadcrumb>
+        <!-- End Bradcaump area -->
+        <!-- Start Latest Project Area -->
+        <div class="bg__white pt--100">
+            <div class="container">
+                <div class="row">
+                    <h2 class="title__line--5">{{menu[1].name}}</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-9 col-lg-9 col-sm-12 col-xs-12 smt-40 xmt-40">
+                        <div class="row">
+                            <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+                                <div class="row">
+                                    <product-list v-bind:list="product.allProducts" v-bind:large="false"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-3 col-sm-12 col-xs-12">
+                		<div class="row" style="padding-left: 1rem; padding-right: 1rem">
+                			<h2 class="sidebar__title">{{ilang('block.category')}}</h2>
+                			<nested-menu v-bind:nav="true" v-bind:list="getRef('1').ref.subroute"></nested-menu>
+                		</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Latest Project Area -->
+        <!-- Start Footer Area -->
+        <customfooter v-bind:menu="menu"></customfooter>
+        <!-- End Footer Area -->
+        <a id="back-to-top" v-on:click="scrollTop()" v-bind:class="{show: showScrollTop}">
+            <i class='fa fa-angle-up'></i>
+        </a>
+    </div>
+    </div>
+    <!-- Body main wrapper end -->
+    <!-- Placed js at the end of the document so the pages load faster -->
+    <script src="js/ilang.js"></script>
+    <!-- Vuejs latest version -->
+    <script src="js/vendor/vue.min.js"></script>
+    <!-- jquery latest version -->
+    <script src="js/vendor/jquery-1.12.0.min.js"></script>
+    <!-- Bootstrap framework js -->
+    <script src="js/bootstrap.min.js"></script>
+    <!-- All js plugins included in this file. -->
+    <script src="js/plugins.js"></script>
+    <!-- Main js file that contents all jQuery plugins activation. -->
+    <script src="js/menu.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+
+
+</html>

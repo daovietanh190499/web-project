@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SCHEDULE</title>
+  <style>
+        table.tftable {font-size:12px;color:#333333;width:15%;border-collapse: collapse; text-align: center; margin-top: 1rem; margin-bottom: 1rem;}
+        table.tftable th {font-size:12px;background-color: #efefef;border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:center;}
+        table.tftable tr:nth-child(2n) {background-color:#eaf8fa;}
+        table.tftable tr td {color:rgb(7, 7, 211);}
+        table.tftable tr td:nth-child(1) {color: rgb(197, 7, 7);}
+        table.tftable td {font-size:12px;border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5; border-top: none; border-bottom: none;}
+        table.tftable tr:nth-last-child(1) td {border-bottom: 1px solid #729ea5;}
+  </style>
+</head>
+<body>
+    <h5>ĐỀ BÀI</h5>
+    <div id="array"></div>
+    <input placeholder="arrival time" autofocus id="arrival" type="number"><input placeholder="burst time" id="burst" type="number">
+    <h5>FCFS</h5>
+    <div id="fcfs"></div>
+    <h5>STF</h5>
+    <div id="stf"></div>
+    <h5>SRTF</h5>
+    <div id="srtf"></div>
+    <h5>RR</h5><input placeholder="time quantum" autofocus id="quantum" type="number" value="15">
+    <div id="rr"></div>
+<script>
+    let array = [];
+    var input = document.getElementById("burst");
+    document.getElementById("arrival").addEventListener("keyup", function(event) {
+        if (event.keyCode === 13 && document.getElementById("arrival").value && document.getElementById("arrival").value !== '') {
+            event.preventDefault();
+            input.focus();
+        }
+    })
+    input.addEventListener("keyup", function(event) {
+        if (event.keyCode === 13 && input.value && input.value !== '') {
+            event.preventDefault();
+            array.push(["P" + (array.length + 1), parseInt(document.getElementById("arrival").value), parseInt(input.value)])
+            var s = array;
+            var cols = [];
+            for (var k in s) {
+                for (var c in s[k]) {
+                    if (cols.indexOf(c)===-1) cols.push(c);
+                }
+            }
+            var html = '<table class=tftable><thead><tr>'+
+                cols.map(function(c){ return '<th>'+((c == 0) ? "Process" : (c == 1) ? "Arrival time" : "Burst time")+'</th>' }).join('')+
+                '</tr></thead><tbody>';
+            for (var l in s) {
+                html += '<tr>'+cols.map(function(c){ return '<td>'+(s[l][c])+'</td>' }).join('')+'</tr>';
+            }
+            html += '</tbody></table>';
+            document.getElementById('array').innerHTML = html
+            document.getElementById("arrival").value = "";
+            document.getElementById("arrival").focus();
+            input.value = "";
+            schedule(array, 'fcfs');
+            schedule(array, 'stf');
+            schedule(array, 'srtf');
+            schedule(array, 'rr', parseInt(document.getElementById("quantum").value));
+        }
+    });
+
+    document.getElementById("quantum").addEventListener("change", function(event) {
+        schedule(array, 'rr', parseInt(document.getElementById("quantum").value));
+    })
+
+    let schedule = (array, type, quantum) => {
+        let sum = 0; 
+        let timeBeginMin = array[0][1];
+        for(let i =0; i < array.length; i ++) {
+            sum += array[i][2];
+            if(array[i][1] < timeBeginMin) timeBeginMin = array[i][1];
+        }
+        let cloneArray = JSON.parse(JSON.stringify(array));
+        let time = timeBeginMin - 1;
+        let result = [];
+        let totalBurst = 0;
+        let currentProcess = 0;
+        let arrivalProcess = [];
+        let timeOld = timeBeginMin;
+        while(true) {
+            time ++;
+            let isEmpty = false;
+            if(arrivalProcess.length == 0) isEmpty = true;
+            for(let i = 0; i < cloneArray.length; i ++) {
+                if(time == cloneArray[i][1]){
+                    if(arrivalProcess.length == 0) currentProcess = i;
+                    arrivalProcess.push(i);
+                } 
+            }
+            
+            switch(type){
+                case "fcfs":
+                    if(cloneArray[currentProcess] && cloneArray[currentProcess][2] == 0) {
+                        arrivalProcess = arrivalProcess.splice(1, arrivalProcess.length - 1);
+                        result.push({"Process": cloneArray[currentProcess][0], "Burst time": cloneArray[currentProcess][3], "Remain time": cloneArray[currentProcess][2]});
+                        totalBurst += cloneArray[currentProcess][3];
+                        cloneArray[currentProcess][3] = 0;
+                        currentProcess = arrivalProcess[0];
+                    }; break;
+                case "stf":
+                    if(isEmpty && arrivalProcess.length > 1) {
+                        let min = 0; 
+                        for(let i = 0; i < arrivalProcess.length; i ++) {
+                            if(cloneArray[arrivalProcess[i]][2] < cloneArray[arrivalProcess[min]][2]) min = i;
+                        }
+                        let temp = arrivalProcess[min];
+                        arrivalProcess[min] = arrivalProcess[0];
+                        arrivalProcess[0] = temp;
+                        currentProcess = arrivalProcess[0];
+                    }
+                    if(cloneArray[currentProcess] && cloneArray[currentProcess][2] == 0) {
+                        arrivalProcess = arrivalProcess.splice(1, arrivalProcess.length - 1);
+                        result.push({"Process": cloneArray[currentProcess][0], "Burst time": cloneArray[currentProcess][3], "Remain time": cloneArray[currentProcess][2]});
+                        totalBurst += cloneArray[currentProcess][3];
+                        cloneArray[currentProcess][3] = 0;
+
+                        if(arrivalProcess.length > 1) {
+                            let min = 0; 
+                            for(let i = 0; i < arrivalProcess.length; i ++) {
+                                if(cloneArray[arrivalProcess[i]][2] < cloneArray[arrivalProcess[min]][2]) min = i;
+                            }
+                            let temp = arrivalProcess[min];
+                            arrivalProcess[min] = arrivalProcess[0];
+                            arrivalProcess[0] = temp;
+                        }
+                        currentProcess = arrivalProcess[0];
+                    }; 
+                    break;
+                case 'srtf': 
+                    let temp = currentProcess;
+                    for(let i = 0; i < arrivalProcess.length; i ++) {
+                        if(cloneArray[currentProcess][2] == 0 && cloneArray[arrivalProcess[i]][2] > 0) currentProcess = arrivalProcess[i];
+                        if((cloneArray[arrivalProcess[i]][2] < cloneArray[currentProcess][2]) && cloneArray[arrivalProcess[i]][2] !==0) currentProcess = arrivalProcess[i];
+                    }
+                    if((currentProcess !== temp && cloneArray[temp][3] !== 0) || (cloneArray[currentProcess][2] == 0 && cloneArray[temp][3] !== 0)) {
+                        result.push({"Process": cloneArray[temp][0], "Burst time": cloneArray[temp][3], "Remain time": cloneArray[temp][2]});
+                        totalBurst += cloneArray[temp][3];
+                        cloneArray[temp][3] = 0;
+                    };
+                    break;
+                case 'rr':
+                    if((time - timeOld == quantum) || cloneArray[currentProcess][2] == 0) {
+                        timeOld = time;
+
+                        if(cloneArray[currentProcess][3] !== 0) {
+                            result.push({"Process": cloneArray[currentProcess][0], "Burst time": cloneArray[currentProcess][3], "Remain time": cloneArray[currentProcess][2]});
+                            totalBurst += cloneArray[currentProcess][3];
+                            cloneArray[currentProcess][3] = 0;
+                        }
+
+                        let circle = 1;
+                        while(cloneArray[arrivalProcess[(arrivalProcess.indexOf(currentProcess) + circle)%arrivalProcess.length]][2] === 0) {
+                            if (((arrivalProcess.indexOf(currentProcess) + circle)%arrivalProcess.length == (arrivalProcess.indexOf(currentProcess) + 1)%arrivalProcess.length) && circle !== 1) break;
+                            circle ++;
+                        }
+                        currentProcess = arrivalProcess[(arrivalProcess.indexOf(currentProcess) + circle)%arrivalProcess.length];
+                    };
+                    break;
+            }
+
+            if(totalBurst === sum) break;
+
+            if(cloneArray[currentProcess] && cloneArray[currentProcess][2] > 0) {
+                if(!cloneArray[currentProcess][3]) cloneArray[currentProcess][3] = 0;
+                cloneArray[currentProcess][3] ++;
+                cloneArray[currentProcess][2] --;
+            }
+        }
+        console.table(result);
+        var s = result;
+        var cols = [];
+        for (var k in s) {
+            for (var c in s[k]) {
+                if (cols.indexOf(c)===-1) cols.push(c);
+            }
+        }
+        var html = '<table class=tftable><thead><tr>'+
+            cols.map(function(c){ return '<th>'+c+'</th>' }).join('')+
+            '</tr></thead><tbody>';
+        for (var l in s) {
+            html += '<tr>'+cols.map(function(c){ return '<td>'+(s[l][c])+'</td>' }).join('')+'</tr>';
+        }
+        html += '</tbody></table>';
+        document.getElementById(type).innerHTML = html;
+    }
+    //[["P1", 0, 12], ["P2", 0, 13], ["P3", 0, 14]]
+</script>
+
+</body>
+</html>

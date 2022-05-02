@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Three Showroom </title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+
+<body>
+	<script type="module">
+		import * as THREE from './build/three.module.js';
+		import { ThreeObject, ThreeModel, ThreeTexture, ThreeLight, ThreeScene, ThreeRenderer, ThreeControls, ThreeCamera } from './ThreeUtils.js'
+		import { CubemapGenerator } from './jsm/loaders/EquirectangularToCubeGenerator.js';
+		import { OrbitControls } from './jsm/controls/OrbitControls.js';
+		import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+		import { DRACOLoader } from './jsm/loaders/DRACOLoader.js';
+
+
+		var camera, scene, renderer, controls, cubeCamera, lat = 0, phi = 0, lon = 0, theta = 0;
+		var object = [];
+
+		ThreeTexture.getBackground('textures/HDR_029_Sky_Cloudy_Bg.jpg', texture => {
+			texture.mapping = THREE.UVMapping;
+			texture.format = THREE.RGBFormat;
+			return texture
+		}, texture => {
+
+			renderer = new ThreeRenderer(
+				new THREE.WebGLRenderer({ antialias: true }), 
+				renderer => {
+					renderer.setPixelRatio(window.devicePixelRatio);
+					renderer.setSize(window.innerWidth, window.innerHeight);
+					renderer.physicallyCorrectLights = true;
+					return renderer
+			})
+
+			camera = new ThreeCamera(
+				new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 20000),
+				camera => {
+					camera.position.set(600, 600, 600);
+					camera.lookAt(new THREE.Vector3(0, 0, 0));
+					return camera
+				}
+			)
+
+			controls = new ThreeControls(
+				new OrbitControls(camera.getCamera(), renderer.getRenderer().domElement),
+				controls => {
+					controls.enableZoom = false;
+					controls.enablePan = false;
+					controls.enableDamping = true;
+					controls.rotateSpeed = 0.25;
+					controls.target.set(0, 0, 0);
+					return controls
+				}
+			)
+
+			scene = new ThreeScene(
+				new THREE.Scene(),
+				scene => {
+					scene.background = new CubemapGenerator(renderer.getRenderer()).fromEquirectangular(
+						texture,{
+						resolution: 4096,
+						generateMipmaps: true,
+						minFilter: THREE.LinearMipmapLinearFilter,
+						magFilter: THREE.LinearFilter
+					});
+					return scene
+			})
+
+			document.body.appendChild( renderer.getRenderer().domElement );
+
+			//object
+			DRACOLoader.setDecoderPath( 'js/libs/draco/gltf/' );
+			var loader = new GLTFLoader();
+			loader.setDRACOLoader( new DRACOLoader() );
+
+			let configTexture = texture => { 
+				texture.wrapS= texture.wrapT= THREE.RepeatWrapping; 
+				texture.repeat= new THREE.Vector2(128, 128); 
+				return texture
+			}
+			object = [
+				new ThreeObject(
+					new THREE.PlaneGeometry(50000, 50000),
+					camera => {
+						camera.renderTarget.texture.generateMipmaps = true;
+						camera.renderTarget.texture.minFilter = THREE.LinearMipmapLinearFilter;
+						camera.position.set(-100, -20000, 0);
+						scene.getScene().add( camera )
+						return camera
+					}, 
+					material => {
+						material.map = ThreeTexture.getTexture('textures/floor/marble/TexturesCom_Marble_TilesDiamond_1K_albedo.png', configTexture);
+						material.normalMap = ThreeTexture.getTexture('textures/floor/marble/TexturesCom_Marble_TilesDiamond_1K_normal.png', configTexture);
+						material.bumpMap = ThreeTexture.getTexture('textures/floor/marble/TexturesCom_Marble_TilesDiamond_1K_height.png', configTexture);
+						material.aoMap = ThreeTexture.getTexture('textures/floor/marble/TexturesCom_Marble_TilesDiamond_1K_ao.png', configTexture);
+						material.roughnessMap = ThreeTexture.getTexture('textures/floor/marble/TexturesCom_Marble_TilesDiamond_1K_roughness.png', configTexture);
+						material.envMapIntensity = 1.5;
+						material.side = THREE.DoubleSide;
+						return material
+					},
+					mesh => {
+						mesh.position.set(0, -200, 0),
+						mesh.rotation.x = Math.PI / 2;
+						scene.getScene().add( mesh )
+						return mesh
+					}
+				),
+				new ThreeModel(
+					loader,
+					'models/gltf/toyota_ae86/scene.gltf',
+					camera => {
+						camera.renderTarget.texture.generateMipmaps = true;
+						camera.renderTarget.texture.minFilter = THREE.LinearMipmapLinearFilter;
+						camera.position.set(0, 0, 0);
+						scene.getScene().add( camera )
+						return camera
+					},
+					childMaterial => {
+						childMaterial.material.envMapIntensity = 3;
+						childMaterial.material.metalness = 0.6;
+						childMaterial.material.roughness = 0.3
+						return childMaterial
+					},
+					model => {
+						model.position.set(0, -200, 0);
+						model.scale.set( 300, 300, 300 );
+						scene.getScene().add( model );
+						return model
+					}
+				)
+			];
+
+			window.addEventListener('resize', function () {
+				renderer.updateConfig(renderer => {
+					renderer.setSize(window.innerWidth, window.innerHeight);
+					return renderer
+				})
+				camera.updateConfig(camera => {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					camera.updateProjectionMatrix();
+					return camera
+				})
+			}, false);
+
+			document.addEventListener( 'wheel', function( event ) {
+				camera.updateConfig(camera => {
+					var fov = camera.fov + event.deltaY * 0.05;
+					camera.fov = THREE.Math.clamp( fov, 10, 75 );
+					camera.updateProjectionMatrix();
+					return camera
+				})
+			}, false );
+
+			//animate
+
+			animate();
+		})
+			
+		function animate() {
+
+			requestAnimationFrame(animate);
+			update();
+			renderer.getRenderer().setRenderTarget(null);
+			renderer.getRenderer().render(scene.getScene(), camera.getCamera());
+			
+		}
+
+		function update() {
+			lon += .5;
+			phi = THREE.Math.degToRad( 90 - 25 );
+			theta = THREE.Math.degToRad( lon );
+
+			camera.updateConfig(camera => {
+				camera.position.x = 1500 * Math.sin( phi ) * Math.cos( theta );
+				camera.position.y = 1500 * Math.cos( phi );
+				camera.position.z = 1500 * Math.sin( phi ) * Math.sin( theta );
+				camera.updateProjectionMatrix();
+				camera.lookAt(0, 0, 0)
+				return camera
+			})
+
+			for(let i = 0; i < object.length; i++) {
+				object[i].update(renderer.getRenderer(), scene.getScene())
+			}
+
+		}
+
+	</script>
+
+</body>
+
+</html>

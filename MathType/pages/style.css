@@ -1,0 +1,63 @@
+.input, #input:focus {
+    border-radius: 2px;
+    border: 0.2rem solid #4a90e2;
+    padding: 0.5rem;
+    padding-left: 2rem;
+    font-size: 1rem;
+    outline: none;
+    color: blue;
+}
+
+.input[placeholder]:empty:before {
+    content: attr(placeholder);
+    color: #555; 
+}
+
+.input span {
+    color:green;
+}
+
+[contenteditable="true"].input {
+    white-space: nowrap;
+    overflow: hidden;
+} 
+
+[contenteditable="true"].input br {
+    display:none;
+}
+
+[contenteditable="true"].input * {
+    display:inline;
+    white-space:nowrap;
+}
+
+#MathJax_Message {
+    display: none !important;
+}
+
+.string {
+    /* color: #4a90e2; */
+    color: blue;
+}
+
+.fomular {
+    /* color: orange; */
+    color: green;
+}
+
+.math_line[index]::before{
+    content: attr(index);
+    position: absolute;
+    left: 0.2rem;
+    width: 1rem !important;
+    padding-top: auto;
+    padding-bottom: auto;
+    color: blue
+}
+
+.title, .title:focus {
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    width: 100%;
+}
